@@ -1,8 +1,18 @@
+import hashlib
+
+def sha256_to_u64_pair(seed: int):
+    """Mimics Minecraft's upgradeSeedTo128bit using SHA-256 hashing."""
+    seed_bytes = seed.to_bytes(8, byteorder='big', signed=True)
+    hash_bytes = hashlib.sha256(seed_bytes).digest()
+
+    high = int.from_bytes(hash_bytes[0:8], byteorder='big')
+    low = int.from_bytes(hash_bytes[8:16], byteorder='big')
+    return high, low
+
 def rotate_left(x, r):
     return ((x << r) & 0xFFFFFFFFFFFFFFFF) | (x >> (64 - r))
 
-
-class XoroshiroRandomSource:
+class Xoroshiro128PlusPlus:
     def __init__(self, seed0, seed1):
         self.s0 = seed0 & 0xFFFFFFFFFFFFFFFF
         self.s1 = seed1 & 0xFFFFFFFFFFFFFFFF
@@ -14,26 +24,15 @@ class XoroshiroRandomSource:
         self.s1 = rotate_left(s1_xor_s0, 28) & 0xFFFFFFFFFFFFFFFF
         return result
 
-
-def upgrade_seed_to_128bit(seed):
-    HIGH_MASK = 0x6A09E667F3BCC909
-    LOW_MASK = 0xBB67AE8584CAA73B
-    high = seed ^ HIGH_MASK
-    low = seed ^ LOW_MASK
-    return high & 0xFFFFFFFFFFFFFFFF, low & 0xFFFFFFFFFFFFFFFF
-
-
-def get_two_next_longs(world_seed):
-    seed0, seed1 = upgrade_seed_to_128bit(world_seed)
-    rng = XoroshiroRandomSource(seed0, seed1)
+def get_mesa_band_next_longs(world_seed: int):
+    seed0, seed1 = sha256_to_u64_pair(world_seed)
+    rng = Xoroshiro128PlusPlus(seed0, seed1)
     first = rng.nextLong()
     second = rng.nextLong()
     return first, second
 
-
 if __name__ == "__main__":
     world_seed = int(input("Enter your Minecraft world seed (64-bit integer): "))
-
-    first_long, second_long = get_two_next_longs(world_seed)
-    print(f"First nextLong():  0x{first_long:016X}")
-    print(f"Second nextLong(): 0x{second_long:016X}")
+    first_long, second_long = get_mesa_band_next_longs(world_seed)
+    print(f"First nextLong() (mesa band RNG):  0x{first_long:016X}")
+    print(f"Second nextLong() (mesa band RNG): 0x{second_long:016X}")
