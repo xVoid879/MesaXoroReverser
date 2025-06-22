@@ -6,8 +6,10 @@ Generates two consecutive nextLong outputs from the internal Xoroshiro128++ RNG 
 
 Using seed: -8734629182736458273
 
-First nextLong(): 0x4AB8CC5FDCFBA9B9
+First nextLong(): 0xA8B9BD5CED8C48C1
 
-Second nextLong(): 0x31AD69B0BB802D45
+Second nextLong(): 0xA3682839AE7A5727
 
 I'm currently using an SMT solver to use these consecutive nextLong() to obtain the full 128 bit internal state.
+
+all script created by chatgpt
